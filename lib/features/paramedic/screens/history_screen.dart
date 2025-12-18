@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import '../../../core/theme.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -73,7 +73,10 @@ class HistoryScreen extends StatelessWidget {
                       children: [
                         Text(
                           item['type'] as String,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white),
                         ),
                         Text(
                           item['hospital'] as String,
@@ -81,20 +84,25 @@ class HistoryScreen extends StatelessWidget {
                         ),
                         Text(
                           item['timestamp'] as String,
-                          style: const TextStyle(color: Colors.white30, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white30, fontSize: 12),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppTheme.successGreen.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       item['status'] as String,
-                      style: const TextStyle(color: AppTheme.successGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: AppTheme.successGreen,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

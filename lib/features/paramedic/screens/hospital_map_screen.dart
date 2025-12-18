@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
+
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../models/data_models.dart';
@@ -12,7 +12,6 @@ class HospitalMapScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hospitals = ref.watch(hospitalsProvider);
-    final emergencyType = ref.watch(selectedEmergencyTypeProvider) ?? "Unknown";
 
     return Theme(
       data: AppTheme.paramedicTheme,
@@ -27,11 +26,13 @@ class HospitalMapScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.map, size: 80, color: Colors.white24),
-                    const Text('Mumbai, India Map View', style: TextStyle(color: Colors.white24)),
+                    const Text('Mumbai, India Map View',
+                        style: TextStyle(color: Colors.white24)),
                     // Mock Pins
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: hospitals.map((h) => _MapPin(hospital: h)).toList(),
+                      children:
+                          hospitals.map((h) => _MapPin(hospital: h)).toList(),
                     )
                   ],
                 ),
@@ -58,17 +59,25 @@ class HospitalMapScreen extends ConsumerWidget {
                 height: 400,
                 decoration: const BoxDecoration(
                   color: AppTheme.darkSurface,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-                  boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 20, spreadRadius: 5)],
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24)),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black45, blurRadius: 20, spreadRadius: 5)
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    Center(child: Container(width: 40, height: 4, color: Colors.white24)),
+                    Center(
+                        child: Container(
+                            width: 40, height: 4, color: Colors.white24)),
                     Padding(
                       padding: const EdgeInsets.all(24.0),
-                      child: Text('Suggested Hospitals', style: Theme.of(context).textTheme.headlineMedium),
+                      child: Text('Suggested Hospitals',
+                          style: Theme.of(context).textTheme.headlineMedium),
                     ),
                     Expanded(
                       child: ListView.separated(
@@ -85,7 +94,8 @@ class HospitalMapScreen extends ConsumerWidget {
                               // In a real app, we'd pass the hospital ID.
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Hospital selected. Please provide details.'),
+                                  content: Text(
+                                      'Hospital selected. Please provide details.'),
                                   backgroundColor: AppTheme.secondaryTrust,
                                   duration: Duration(milliseconds: 500),
                                 ),
@@ -126,7 +136,8 @@ class _MapPin extends StatelessWidget {
             ),
             child: Text(
               '${hospital.icuBeds}',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
           const Icon(Icons.location_on, color: Colors.red, size: 30),
@@ -159,13 +170,18 @@ class _HospitalCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(hospital.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(hospital.name,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.timer, size: 14, color: Colors.white54),
                       const SizedBox(width: 4),
-                      Text('ETA: ${hospital.distance}', style: const TextStyle(color: Colors.white54)),
+                      Text('ETA: ${hospital.distance}',
+                          style: const TextStyle(color: Colors.white54)),
                     ],
                   ),
                 ],
@@ -207,13 +223,15 @@ class _AvailabilityBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color),
       ),
       child: Column(
         children: [
-          Text('$count', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('$count',
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.bold, fontSize: 18)),
           Text(label, style: TextStyle(color: color, fontSize: 10)),
         ],
       ),

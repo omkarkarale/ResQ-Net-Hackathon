@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
+
 import '../models/data_models.dart';
 
 // Mock Hospitals (Mumbai Locations)
@@ -35,7 +35,7 @@ final hospitalsProvider = Provider<List<Hospital>>((ref) {
       latitude: 19.0336,
       longitude: 72.8384,
     ),
-     const Hospital(
+    const Hospital(
       id: 'h4',
       name: 'Nanavati Super Speciality',
       distance: '18 mins',
@@ -65,7 +65,7 @@ final hospitalsProvider = Provider<List<Hospital>>((ref) {
       latitude: 19.1309,
       longitude: 72.8295,
     ),
-     const Hospital(
+    const Hospital(
       id: 'h7',
       name: 'Lokmanya Tilak Municipal (Sion)',
       distance: '14 mins',
@@ -127,7 +127,8 @@ class AlertsNotifier extends StateNotifier<List<AmbulanceAlert>> {
   }
 }
 
-final alertsProvider = StateNotifierProvider<AlertsNotifier, List<AmbulanceAlert>>((ref) {
+final alertsProvider =
+    StateNotifierProvider<AlertsNotifier, List<AmbulanceAlert>>((ref) {
   return AlertsNotifier();
 });
 
