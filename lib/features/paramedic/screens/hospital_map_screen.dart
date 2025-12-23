@@ -29,10 +29,14 @@ class HospitalMapScreen extends ConsumerWidget {
                     const Text('Mumbai, India Map View',
                         style: TextStyle(color: Colors.white24)),
                     // Mock Pins
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          hospitals.map((h) => _MapPin(hospital: h)).toList(),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: hospitals
+                          .take(5)
+                          .map((h) => _MapPin(hospital: h))
+                          .toList(),
                     )
                   ],
                 ),
@@ -53,62 +57,74 @@ class HospitalMapScreen extends ConsumerWidget {
             ),
 
             // Bottom Sheet
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                height: 400,
-                decoration: const BoxDecoration(
-                  color: AppTheme.darkSurface,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black45, blurRadius: 20, spreadRadius: 5)
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    Center(
-                        child: Container(
-                            width: 40, height: 4, color: Colors.white24)),
-                    Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text('Suggested Hospitals',
-                          style: Theme.of(context).textTheme.headlineMedium),
-                    ),
-                    Expanded(
-                      child: ListView.separated(
+            DraggableScrollableSheet(
+              initialChildSize: 0.5,
+              minChildSize: 0.15,
+              maxChildSize: 0.9,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: AppTheme.darkSurface,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black45,
+                          blurRadius: 20,
+                          spreadRadius: 5)
+                    ],
+                  ),
+                  child: ListView.separated(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(0),
+                    itemCount: hospitals.length + 1, // +1 for header
+                    separatorBuilder: (_, index) =>
+                        index == 0 ? const SizedBox.shrink() : const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        // Header Section
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            Center(
+                                child: Container(
+                                    width: 40,
+                                    height: 4,
+                                    color: Colors.white24)),
+                            Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Text('Suggested Hospitals',
+                                  style:
+                                      Theme.of(context).textTheme.headlineMedium),
+                            ),
+                          ],
+                        );
+                      }
+                      // List Items
+                      final hospital = hospitals[index - 1];
+                      return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: hospitals.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final hospital = hospitals[index];
-                          return _HospitalCard(
-                            hospital: hospital,
-                            onRoute: () {
-                              // Navigate to Situation Details instead of finalized alert
-                              // We could store the selected hospital in state if needed, but for now we just move forward
-                              // In a real app, we'd pass the hospital ID.
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Hospital selected. Please provide details.'),
-                                  backgroundColor: AppTheme.secondaryTrust,
-                                  duration: Duration(milliseconds: 500),
-                                ),
-                              );
-                              context.go('/paramedic/situation-details');
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                        child: _HospitalCard(
+                          hospital: hospital,
+                          onRoute: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Hospital selected. Please provide details.'),
+                                backgroundColor: AppTheme.secondaryTrust,
+                                duration: Duration(milliseconds: 500),
+                              ),
+                            );
+                            context.go('/paramedic/situation-details');
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             )
           ],
         ),
@@ -164,31 +180,36 @@ class _HospitalCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(hospital.name,
-                      style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
-                  const SizedBox(height: 4),
-                  Row(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.timer, size: 14, color: Colors.white54),
-                      const SizedBox(width: 4),
-                      Text('ETA: ${hospital.distance}',
-                          style: const TextStyle(color: Colors.white54)),
+                      Text(hospital.name,
+                          softWrap: true,
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.timer, size: 14, color: Colors.white54),
+                          const SizedBox(width: 4),
+                          Text('ETA: ${hospital.distance}',
+                              style: const TextStyle(color: Colors.white54)),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
-              _AvailabilityBadge(count: hospital.icuBeds, label: 'ICU'),
-            ],
-          ),
+                ),
+                const SizedBox(width: 8), // Add spacing between text and badge
+                _AvailabilityBadge(count: hospital.icuBeds, label: 'ICU'),
+              ],
+            ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
