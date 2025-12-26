@@ -32,9 +32,9 @@ class HospitalDashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  _SidebarItem(icon: Icons.dashboard, label: 'Dashboard', isSelected: true),
-                  _SidebarItem(icon: Icons.bedroom_child, label: 'Bed Inventory', isSelected: false),
-                  _SidebarItem(icon: Icons.history, label: 'Incoming History', isSelected: false),
+                  const _SidebarItem(icon: Icons.dashboard, label: 'Dashboard', isSelected: true),
+                  const _SidebarItem(icon: Icons.bedroom_child, label: 'Bed Inventory', isSelected: false),
+                  const _SidebarItem(icon: Icons.history, label: 'Incoming History', isSelected: false),
                   const Spacer(),
                   const Padding(
                     padding: EdgeInsets.all(24.0),
@@ -182,7 +182,7 @@ class _StatusCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-              Switch(value: true, onChanged: (_) {}, activeColor: color),
+              Switch(value: true, onChanged: (_) {}, activeThumbColor: color),
             ],
           ),
           const SizedBox(height: 16),
@@ -206,13 +206,13 @@ class _SpecialistCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Specialists On-Site', style: TextStyle(color: Colors.grey, fontSize: 16)),
-          const SizedBox(height: 16),
+          Text('Specialists On-Site', style: TextStyle(color: Colors.grey, fontSize: 16)),
+          SizedBox(height: 16),
           _SpecialistRow(label: 'Cardiologist', isAvailable: true),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           _SpecialistRow(label: 'Neurologist', isAvailable: false),
         ],
       ),

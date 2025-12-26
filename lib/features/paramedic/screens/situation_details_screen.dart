@@ -93,7 +93,7 @@ class _SituationDetailsScreenState extends ConsumerState<SituationDetailsScreen>
             const SizedBox(height: 32),
             _buildSectionLabel('MECHANISM OF INJURY'),
             DropdownButtonFormField<String>(
-              value: _mechanism,
+              initialValue: _mechanism,
               dropdownColor: Colors.grey[900],
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(

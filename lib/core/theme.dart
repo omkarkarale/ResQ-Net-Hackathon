@@ -28,7 +28,6 @@ class AppTheme {
         primary: primaryAlert,
         secondary: secondaryTrust,
         surface: darkSurface,
-        background: darkBackground,
         error: primaryAlert,
         onSurface: textLight,
       ),
@@ -58,7 +57,6 @@ class AppTheme {
         primary: secondaryTrust, // Blue is primary for Hospital trust vibe
         secondary: primaryAlert, // Red for alerts
         surface: lightSurface,
-        background: lightBackground,
         onSurface: textDark,
       ),
       scaffoldBackgroundColor: lightBackground,

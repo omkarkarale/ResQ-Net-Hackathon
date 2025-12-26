@@ -12,11 +12,11 @@ class SeveritySelectionScreen extends ConsumerWidget {
     final emergencyType = ref.watch(selectedEmergencyTypeProvider);
 
     final severityLevels = [
-      {'level': 'Critical', 'color': Color(0xFFD32F2F), 'icon': Icons.warning}, // Dark Red
-      {'level': 'Severe', 'color': Color(0xFFE53935), 'icon': Icons.error}, // Red
-      {'level': 'Moderate', 'color': Color(0xFFEF6C00), 'icon': Icons.report_problem}, // Orange
-      {'level': 'Mild', 'color': Color(0xFFFDD835), 'icon': Icons.info}, // Yellow
-      {'level': 'Stable', 'color': Color(0xFF43A047), 'icon': Icons.check_circle}, // Green
+      {'level': 'Critical', 'color': const Color(0xFFD32F2F), 'icon': Icons.warning}, // Dark Red
+      {'level': 'Severe', 'color': const Color(0xFFE53935), 'icon': Icons.error}, // Red
+      {'level': 'Moderate', 'color': const Color(0xFFEF6C00), 'icon': Icons.report_problem}, // Orange
+      {'level': 'Mild', 'color': const Color(0xFFFDD835), 'icon': Icons.info}, // Yellow
+      {'level': 'Stable', 'color': const Color(0xFF43A047), 'icon': Icons.check_circle}, // Green
     ];
 
     return Theme(

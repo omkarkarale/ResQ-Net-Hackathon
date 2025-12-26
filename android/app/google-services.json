@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "873808093366",
+    "project_id": "resq-net-hackathon",
+    "storage_bucket": "resq-net-hackathon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873808093366:android:369821056bb9aa62b34617",
+        "android_client_info": {
+          "package_name": "com.example.resq_net"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwVyW1PlNDtSw1-fmLnmnWBFG4SlEueRI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
