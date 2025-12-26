@@ -1,28 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme.dart';
 
 class ParamedicHomeTab extends StatelessWidget {
   const ParamedicHomeTab({super.key});
+
+  String _getDynamicHeader(User? user) {
+    if (user?.email == null) return 'AMBULANCE';
+
+    // email format: id@resqnet.com -> split to get 'id'
+    final idPart = user!.email!.split('@')[0].toUpperCase();
+
+    // Strict requirement: Only expand 'AMB-' to 'AMBULANCE '
+    if (idPart.startsWith('AMB-')) {
+      return idPart.replaceFirst('AMB-', 'AMBULANCE ');
+    }
+
+    return idPart;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         // Header
-        const Padding(
-          padding: EdgeInsets.all(16.0),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'AMBULANCE 402',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
-                  color: Colors.white,
-                ),
+              StreamBuilder<User?>(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, snapshot) {
+                  return Text(
+                    _getDynamicHeader(snapshot.data),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                      color: Colors.white,
+                    ),
+                  );
+                },
               ),
               Row(
                 children: [
