@@ -145,11 +145,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   }
 
   void _navigate(String email) {
-    if (email.contains('admin') || email.startsWith('h')) {
-      context.go('/hospital-dashboard');
-    } else {
-      context.go('/paramedic-home');
-    }
+    // Hospital feature removed, defaulting to paramedic home
+    context.go('/paramedic-home');
   }
 
   Future<void> _handleLogin() async {

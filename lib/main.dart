@@ -31,7 +31,7 @@ class ResQNetApp extends StatelessWidget {
       // Theme Setup
       themeMode: ThemeMode
           .system, // Or explicit based on login, but currently dynamic per screen
-      theme: AppTheme.hospitalTheme, // Default light
+      theme: AppTheme.paramedicTheme, // Default light
       darkTheme: AppTheme.paramedicTheme, // Default dark
 
       // Router Setup

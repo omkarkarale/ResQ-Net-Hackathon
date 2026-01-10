@@ -8,7 +8,6 @@ import 'features/paramedic/screens/paramedic_dashboard.dart';
 import 'features/paramedic/screens/emergency_type_screen.dart';
 import 'features/paramedic/screens/patient_input_screen.dart';
 import 'features/paramedic/screens/hospital_map_screen.dart'; // Added
-import 'features/hospital/screens/hospital_dashboard.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -17,15 +16,7 @@ final router = GoRouter(
   redirect: (context, state) {
     final isLoggedIn = FirebaseAuth.instance.currentUser != null;
     final isLoggingIn = state.uri.toString() == '/';
-
-    if (!isLoggedIn && !isLoggingIn) {
-      return '/';
-    }
-
-    // REMOVED: Auto-redirect for logged-in users.
-    // We want them to land on LoginScreen to perform Biometric Check.
-    // LoginScreen will handle navigation after biometrics success.
-
+    if (!isLoggedIn && !isLoggingIn) return '/';
     return null;
   },
   routes: [
@@ -52,12 +43,6 @@ final router = GoRouter(
       // Added to support existing patient_input_screen flow
       path: '/paramedic/hospital-map',
       builder: (context, state) => const HospitalMapScreen(),
-    ),
-
-    // Hospital Routes
-    GoRoute(
-      path: '/hospital-dashboard',
-      builder: (context, state) => const HospitalDashboardScreen(),
     ),
   ],
   errorBuilder: (context, state) => Scaffold(

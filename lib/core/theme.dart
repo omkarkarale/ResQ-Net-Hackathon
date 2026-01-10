@@ -5,7 +5,7 @@ class AppTheme {
   // Colors
   static const Color primaryAlert = Color(0xFFD32F2F); // Emergency Red
   static const Color secondaryTrust = Color(0xFF1565C0); // Medical Blue
-  
+
   // Highlighting
   static const Color successGreen = Color(0xFF2E7D32);
   static const Color warningOrange = Color(0xFFEF6C00);
@@ -32,42 +32,23 @@ class AppTheme {
         onSurface: textLight,
       ),
       scaffoldBackgroundColor: darkBackground,
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: const TextStyle(fontWeight: FontWeight.w700, color: textLight),
-        headlineMedium: const TextStyle(fontWeight: FontWeight.w600, color: textLight),
+      textTheme:
+          GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+        displayLarge:
+            const TextStyle(fontWeight: FontWeight.w700, color: textLight),
+        headlineMedium:
+            const TextStyle(fontWeight: FontWeight.w600, color: textLight),
         bodyLarge: const TextStyle(fontSize: 18, color: textLight),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: secondaryTrust,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-      ),
-    );
-  }
-
-  static ThemeData get hospitalTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
-        primary: secondaryTrust, // Blue is primary for Hospital trust vibe
-        secondary: primaryAlert, // Red for alerts
-        surface: lightSurface,
-        onSurface: textDark,
-      ),
-      scaffoldBackgroundColor: lightBackground,
-      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: const TextStyle(fontWeight: FontWeight.w700, color: textDark),
-        headlineSmall: const TextStyle(fontWeight: FontWeight.w600, color: textDark),
-      ),
-      cardTheme: CardThemeData(
-        color: lightSurface,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
