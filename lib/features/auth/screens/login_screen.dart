@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,7 +16,7 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   final _idController = TextEditingController();
   final _pinController = TextEditingController();
   bool _isPinVisible = false;
@@ -24,35 +25,80 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   final _deviceService = DeviceService();
   final LocalAuthentication _localAuth = LocalAuthentication();
+  StreamSubscription<User?>? _authSubscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Listen for Auth Changes (Fixes Race Condition)
+    _authSubscription = _authService.authStateChanges.listen((user) {
+      if (user != null) {
+        _checkBiometrics();
+      }
+    });
+
     _checkBiometrics();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _authSubscription?.cancel();
+    _idController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Only check manually on resume, the listener handles the initial load
+      if (_authService.currentUser != null) {
+        _checkBiometrics();
+      }
+    }
   }
 
   Future<void> _checkBiometrics() async {
     // 1. Check if user is already signed in (Firebase persists session)
+    // Wait for auth to settle
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
+      if (currentUser.email == null) return;
+
       // 2. Verify Session (Device Check)
-      setState(() => _isLoading = true);
+      if (mounted) setState(() => _isLoading = true);
       final isValidDevice = await _authService.verifySession();
       if (!mounted) return;
 
       if (!isValidDevice) {
         // Invalid Device -> Logout
         await _authService.signOut();
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Session invalid. Please login again.')),
-        );
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Session invalid. Please login again.')),
+          );
+        }
         return;
       }
 
       // 3. Prompt Biometrics
       try {
         final canCheckBiometrics = await _localAuth.canCheckBiometrics;
+
+        if (!canCheckBiometrics) {
+          final available = await _localAuth.getAvailableBiometrics();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Biometrics unavailable: $available')),
+            );
+          }
+        }
+
         if (canCheckBiometrics) {
           final didAuthenticate = await _localAuth.authenticate(
             localizedReason: 'Please authenticate to access ResQ-Net',
@@ -61,8 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (didAuthenticate) {
             // DOUBLE CHECK: Race Condition Fix
-            // Ensure session is STILL valid after the biometric delay.
-            // (Another device might have logged in while the prompt was open)
             final isStillValid = await _authService.verifySession();
 
             if (isStillValid) {
@@ -78,20 +122,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 );
               }
               await _authService.signOut();
-              setState(() => _isLoading = false);
+              if (mounted) setState(() => _isLoading = false);
             }
             return;
           } else {
             // Cancelled or Failed -> Exit App (Preserve Session)
-            // If they cancel, they probably didn't mean to open the app,
-            // or they can just reopen to try again.
-            // We DO NOT signOut here, to avoid the delay next time.
             SystemNavigator.pop();
           }
         }
       } catch (e) {
         // Biometric error, fall back to PIN (Stay on screen)
-        print('Biometric error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Biometric Error: $e')),
+          );
+        }
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }

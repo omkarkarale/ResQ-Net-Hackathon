@@ -22,15 +22,9 @@ final router = GoRouter(
       return '/';
     }
 
-    if (isLoggedIn && isLoggingIn) {
-      // Role-based redirect for authenticated users trying to access login
-      final email = FirebaseAuth.instance.currentUser?.email ?? '';
-      if (email.contains('admin') || email.startsWith('h')) {
-        return '/hospital-dashboard';
-      } else {
-        return '/paramedic-home';
-      }
-    }
+    // REMOVED: Auto-redirect for logged-in users.
+    // We want them to land on LoginScreen to perform Biometric Check.
+    // LoginScreen will handle navigation after biometrics success.
 
     return null;
   },
