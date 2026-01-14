@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import '../../router.dart';
 import '../services/device_service.dart';
 import '../../features/auth/services/auth_service.dart';
@@ -41,7 +43,13 @@ class _SessionGuardState extends State<SessionGuard> {
           return widget.child;
         }
 
-        // 3. User present: Wrap with inner StreamBuilder (stable node)
+        // 3. User is Logged In - Check for Active Rescue! (SESSION RESTORE)
+        if (ModalRoute.of(context)?.settings.name !=
+            '/paramedic/active-rescue') {
+          _checkActiveRescue(user.uid, context);
+        }
+
+        // 4. User present: Wrap with inner StreamBuilder (stable node)
         return StreamBuilder<String?>(
           stream: _authService.getDeviceStream(user.uid),
           builder: (context, deviceSnapshot) {
@@ -88,5 +96,28 @@ class _SessionGuardState extends State<SessionGuard> {
         );
       },
     );
+  }
+
+  Future<void> _checkActiveRescue(String uid, BuildContext context) async {
+    try {
+      final query = await FirebaseFirestore.instance
+          .collection('paramedic_history')
+          .where('user_id', isEqualTo: uid)
+          .where('status', isEqualTo: 'active')
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        final rescueId = query.docs.first.id;
+        print(
+            "SessionGuard: Found active rescue $rescueId. Restoring session...");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          GoRouter.of(context).go('/paramedic/active-rescue', extra: rescueId);
+        });
+      }
+    } catch (e) {
+      print("SessionGuard Error checking active rescue: $e");
+    }
   }
 }

@@ -7,7 +7,8 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/paramedic/screens/paramedic_dashboard.dart';
 import 'features/paramedic/screens/emergency_type_screen.dart';
 import 'features/paramedic/screens/patient_input_screen.dart';
-import 'features/paramedic/screens/hospital_map_screen.dart'; // Added
+import 'features/paramedic/screens/active_rescue_screen.dart';
+import 'features/paramedic/screens/hospital_map_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -48,6 +49,13 @@ final router = GoRouter(
       builder: (context, state) {
         final triageId = state.extra as String?;
         return HospitalMapScreen(triageId: triageId);
+      },
+    ),
+    GoRoute(
+      path: '/paramedic/active-rescue',
+      builder: (context, state) {
+        final rescueId = state.extra as String;
+        return ActiveRescueScreen(rescueId: rescueId);
       },
     ),
   ],

@@ -6,6 +6,7 @@ import 'core/theme.dart';
 import 'router.dart';
 import 'firebase_options.dart';
 import 'core/widgets/session_guard.dart';
+import 'core/widgets/lifecycle_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,9 @@ class ResQNetApp extends StatelessWidget {
 
       // Router Setup
       routerConfig: router,
-      builder: (context, child) => SessionGuard(child: child!),
+      builder: (context, child) => SessionGuard(
+        child: LifecycleManager(child: child!),
+      ),
     );
   }
 }

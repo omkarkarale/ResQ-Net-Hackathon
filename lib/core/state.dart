@@ -134,3 +134,6 @@ final alertsProvider =
 
 // Selected Emergency Type State
 final selectedEmergencyTypeProvider = StateProvider<String?>((ref) => null);
+
+// Triage ID cleanup provider (stores ID of temp doc to delete on app close)
+final cleanupTriageIdProvider = StateProvider<String?>((ref) => null);

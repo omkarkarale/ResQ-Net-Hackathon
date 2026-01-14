@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
@@ -54,15 +55,108 @@ class HospitalMapScreen extends ConsumerWidget {
                     final hospital = hospitals[index];
                     return _HospitalCard(
                       hospital: hospital,
-                      onRoute: () {
-                        // Mock Navigation
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text('Starting Route Guidance...'),
-                          backgroundColor: AppTheme.successGreen,
-                          duration: Duration(seconds: 2),
-                        ));
-                        // In real app, launch Maps URL here
+                      onRoute: () async {
+                        if (triageId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text("Error: No Triage Data Found!"),
+                                  backgroundColor: AppTheme.primaryAlert));
+                          return;
+                        }
+
+                        // 1. Move Data: Temp -> Permanent History
+                        try {
+                          final tempRef = FirebaseFirestore.instance
+                              .collection('temp_triages')
+                              .doc(triageId);
+                          final tempSnapshot = await tempRef.get();
+
+                          if (tempSnapshot.exists) {
+                            final tempData = tempSnapshot.data()!;
+
+                            // 1.5. AUTO-COMPLETE Previous Active Rescues
+                            // Ensure only ONE rescue is active at a time.
+                            final staleRescues = await FirebaseFirestore
+                                .instance
+                                .collection('paramedic_history')
+                                .where('user_id',
+                                    isEqualTo: tempData['user_id'])
+                                .where('status', isEqualTo: 'active')
+                                .get();
+
+                            for (var doc in staleRescues.docs) {
+                              await doc.reference.update({
+                                'status': 'completed',
+                                'end_time': FieldValue.serverTimestamp(),
+                                'auto_completed':
+                                    true, // Optional flag for debugging
+                              });
+                            }
+
+                            // Add Rescue Metadata
+                            final historyRef = await FirebaseFirestore.instance
+                                .collection('paramedic_history')
+                                .add({
+                              ...tempData,
+                              'hospital_name': hospital.name,
+                              'hospital_location': GeoPoint(
+                                  hospital.latitude,
+                                  hospital
+                                      .longitude), // If you have coordinates
+                              'status':
+                                  'active', // CRITICAL FOR SESSION RESTORE
+                              'start_time': FieldValue.serverTimestamp(),
+                            });
+
+                            // 2. Delete Temp
+                            await tempRef.delete();
+
+                            // 3. Clear Cleanup Provider (Handled manually)
+                            ref.read(cleanupTriageIdProvider.notifier).state =
+                                null;
+
+                            // 4. Launch Maps (Robust Logic)
+                            try {
+                              final lat = hospital.latitude;
+                              final lng = hospital.longitude;
+                              final googleMapsSameScheme =
+                                  Uri.parse("google.navigation:q=$lat,$lng");
+                              final googleMapsWebScheme = Uri.parse(
+                                  "https://www.google.com/maps/dir/?api=1&destination=$lat,$lng");
+
+                              if (await canLaunchUrl(googleMapsSameScheme)) {
+                                await launchUrl(googleMapsSameScheme);
+                              } else {
+                                // Fallback: Open in Browser / Standard Intent
+                                print(
+                                    "Maps Intent failed, trying Web Scheme...");
+                                if (await canLaunchUrl(googleMapsWebScheme)) {
+                                  await launchUrl(googleMapsWebScheme,
+                                      mode: LaunchMode.externalApplication);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text("Could not open Maps"),
+                                          backgroundColor:
+                                              AppTheme.primaryAlert));
+                                }
+                              }
+                            } catch (e) {
+                              print("Maps Launch Error: $e");
+                            }
+
+                            // 5. Navigate to Active Rescue Screen
+                            if (context.mounted) {
+                              context.go('/paramedic/active-rescue',
+                                  extra: historyRef.id);
+                            }
+                          }
+                        } catch (e) {
+                          print("Routing Error: $e");
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("Failed to start rescue: $e"),
+                              backgroundColor: AppTheme.primaryAlert));
+                        }
                       },
                     );
                   },
@@ -201,15 +295,16 @@ class _AvailabilityBadge extends StatelessWidget {
   }
 }
 
-class _CancelEmergencyButton extends StatefulWidget {
+class _CancelEmergencyButton extends ConsumerStatefulWidget {
   final String? triageId;
   const _CancelEmergencyButton({this.triageId});
 
   @override
-  State<_CancelEmergencyButton> createState() => _CancelEmergencyButtonState();
+  ConsumerState<_CancelEmergencyButton> createState() =>
+      _CancelEmergencyButtonState();
 }
 
-class _CancelEmergencyButtonState extends State<_CancelEmergencyButton>
+class _CancelEmergencyButtonState extends ConsumerState<_CancelEmergencyButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _cancelled = false;
@@ -230,6 +325,10 @@ class _CancelEmergencyButtonState extends State<_CancelEmergencyButton>
                 .collection('temp_triages')
                 .doc(widget.triageId)
                 .delete();
+
+            // CLEAR CLEANUP PROVIDER (So LifecycleManager doesn't try to delete again)
+            ref.read(cleanupTriageIdProvider.notifier).state = null;
+
             print("Deleted Triage Doc: ${widget.triageId}");
           } catch (e) {
             print("Error deleting triage doc: $e");

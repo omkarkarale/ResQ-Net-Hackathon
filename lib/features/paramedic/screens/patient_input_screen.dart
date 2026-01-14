@@ -7,12 +7,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'dart:math';
 import '../../../core/theme.dart';
 
-class PatientInputScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/state.dart';
+
+class PatientInputScreen extends ConsumerStatefulWidget {
   final String emergencyType;
 
   const PatientInputScreen({
@@ -21,10 +23,10 @@ class PatientInputScreen extends StatefulWidget {
   });
 
   @override
-  State<PatientInputScreen> createState() => _PatientInputScreenState();
+  ConsumerState<PatientInputScreen> createState() => _PatientInputScreenState();
 }
 
-class _PatientInputScreenState extends State<PatientInputScreen> {
+class _PatientInputScreenState extends ConsumerState<PatientInputScreen> {
   // Constants
   static const double _spacing = 20.0;
 
@@ -382,7 +384,6 @@ class _PatientInputScreenState extends State<PatientInputScreen> {
               _ConfirmationSlider(
                 onConfirmed: () async {
                   // 1. Validate: Check if ANY data is provided
-                  // Allow submission if at least one vital sign is entered OR AI assessment is done
                   bool hasData = _heartRateController.text.isNotEmpty ||
                       _respRateController.text.isNotEmpty ||
                       _o2SatController.text.isNotEmpty ||
@@ -403,28 +404,10 @@ class _PatientInputScreenState extends State<PatientInputScreen> {
                     return false; // Failed, slide back
                   }
 
-                  // 2. UPLOAD IMAGE & SAVE TO FIREBASE
+                  // 2. SAVE TO FIREBASE (Skipping Image Upload for Speed)
                   String? triageDocId;
                   try {
                     final user = FirebaseAuth.instance.currentUser;
-                    String? imageUrl;
-
-                    // Upload Image if captured
-                    if (_capturedImage != null) {
-                      final fileName =
-                          '${DateTime.now().millisecondsSinceEpoch}_${user?.uid ?? "anon"}.jpg';
-                      final storageRef = FirebaseStorage.instance
-                          .ref()
-                          .child('temp_triage_images/$fileName');
-
-                      try {
-                        await storageRef.putFile(_capturedImage!);
-                        imageUrl = await storageRef.getDownloadURL();
-                      } catch (e) {
-                        print("Image Upload Error: $e");
-                        // We continue even if image upload fails, but you might want to alert
-                      }
-                    }
 
                     final docRef = await FirebaseFirestore.instance
                         .collection('temp_triages')
@@ -435,18 +418,21 @@ class _PatientInputScreenState extends State<PatientInputScreen> {
                       'o2_saturation': _o2SatController.text,
                       'blood_pressure': _bpController.text,
                       'clinical_impression': _clinicalImpressionController.text,
-                      'image_url': imageUrl, // Save URL here
                       'timestamp': FieldValue.serverTimestamp(),
                       'user_id': user?.uid ?? 'anonymous',
                       'operator_email': user?.email ?? 'unknown',
                     });
                     triageDocId = docRef.id;
+
+                    // SET CLEANUP PROVIDER
+                    ref.read(cleanupTriageIdProvider.notifier).state =
+                        triageDocId;
                   } catch (e) {
                     print("Firebase Error: $e");
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text("Failed to save data: $e"),
                         backgroundColor: AppTheme.primaryAlert));
-                    // We might not want to block navigation if offline, but for now let's just log it
+                    return false; // Stay on screen if save fails
                   }
 
                   // 3. Success, Navigate & Pass ID for Deletion capability
