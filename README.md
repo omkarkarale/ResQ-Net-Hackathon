@@ -32,7 +32,7 @@ We leveraged the **Google Cloud Ecosystem** to build a scalable and intelligent 
 | **Geolocation** | **Google Maps Platform** | Routes API for "Green Corridor" navigation & Distance Matrix for ETA. |
 | **Backend/DB** | **Firebase (Firestore)** | Real-time database for sub-second syncing between Ambulance & Hospital. |
 | **Logic** | **Google Cloud Functions** | Serverless triggers for "Code Blue" alerts based on severity. |
-| **Frontend** | **Flutter / React** | Cross-platform UI for Paramedic App and Admin Dashboard. |
+| **Frontend** | **Flutter** | Cross-platform UI for Paramedic App. |
 
 ## 🏗️ Architecture
 
