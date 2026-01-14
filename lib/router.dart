@@ -37,12 +37,18 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/patient-input',
-      builder: (context, state) => const PatientInputScreen(),
+      builder: (context, state) {
+        final emergencyType = state.extra as String?;
+        return PatientInputScreen(emergencyType: emergencyType ?? 'General');
+      },
     ),
     GoRoute(
       // Added to support existing patient_input_screen flow
       path: '/paramedic/hospital-map',
-      builder: (context, state) => const HospitalMapScreen(),
+      builder: (context, state) {
+        final triageId = state.extra as String?;
+        return HospitalMapScreen(triageId: triageId);
+      },
     ),
   ],
   errorBuilder: (context, state) => Scaffold(

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:local_auth/local_auth.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/device_service.dart';
 import '../services/auth_service.dart';
@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   bool _isLoading = false;
   final _authService = AuthService();
   final _deviceService = DeviceService();
-  final LocalAuthentication _localAuth = LocalAuthentication();
   StreamSubscription<User?>? _authSubscription;
 
   @override
@@ -32,14 +31,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Listen for Auth Changes (Fixes Race Condition)
+    // Listen for Auth Changes
     _authSubscription = _authService.authStateChanges.listen((user) {
       if (user != null) {
-        _checkBiometrics();
+        _checkSession();
       }
     });
 
-    _checkBiometrics();
+    _checkSession();
   }
 
   @override
@@ -54,16 +53,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Only check manually on resume, the listener handles the initial load
       if (_authService.currentUser != null) {
-        _checkBiometrics();
+        _checkSession();
       }
     }
   }
 
-  Future<void> _checkBiometrics() async {
-    // 1. Check if user is already signed in (Firebase persists session)
-    // Wait for auth to settle
+  Future<void> _checkSession() async {
+    // 1. Check if user is already signed in
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
       if (currentUser.email == null) return;
@@ -86,61 +83,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         return;
       }
 
-      // 3. Prompt Biometrics
-      try {
-        final canCheckBiometrics = await _localAuth.canCheckBiometrics;
-
-        if (!canCheckBiometrics) {
-          final available = await _localAuth.getAvailableBiometrics();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Biometrics unavailable: $available')),
-            );
-          }
-        }
-
-        if (canCheckBiometrics) {
-          final didAuthenticate = await _localAuth.authenticate(
-            localizedReason: 'Please authenticate to access ResQ-Net',
-            options: const AuthenticationOptions(stickyAuth: true),
-          );
-
-          if (didAuthenticate) {
-            // DOUBLE CHECK: Race Condition Fix
-            final isStillValid = await _authService.verifySession();
-
-            if (isStillValid) {
-              _navigate(currentUser.email!);
-            } else {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Session Expired: Account accessed elsewhere.'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-              await _authService.signOut();
-              if (mounted) setState(() => _isLoading = false);
-            }
-            return;
-          } else {
-            // Cancelled or Failed -> Exit App (Preserve Session)
-            SystemNavigator.pop();
-          }
-        }
-      } catch (e) {
-        // Biometric error, fall back to PIN (Stay on screen)
-        if (mounted) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Biometric Error: $e')),
-          );
-        }
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
-      }
+      // 3. Valid Session -> Navigate Home
+      _navigate(currentUser.email!);
     }
   }
 

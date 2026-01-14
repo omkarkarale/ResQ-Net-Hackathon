@@ -58,7 +58,7 @@ class EmergencyTypeScreen extends StatelessWidget {
       IconData icon, String route) {
     return GestureDetector(
       onTap: () {
-        context.push(route);
+        context.push(route, extra: title);
       },
       child: Container(
         decoration: BoxDecoration(

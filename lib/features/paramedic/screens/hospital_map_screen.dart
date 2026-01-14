@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../models/data_models.dart';
 
 class HospitalMapScreen extends ConsumerWidget {
-  const HospitalMapScreen({super.key});
+  final String? triageId;
+
+  const HospitalMapScreen({super.key, this.triageId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,148 +20,57 @@ class HospitalMapScreen extends ConsumerWidget {
     return Theme(
       data: AppTheme.paramedicTheme,
       child: Scaffold(
-        body: Stack(
-          children: [
-            // MOCK MAP
-            Container(
-              color: Colors.grey[800],
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.map, size: 80, color: Colors.white24),
-                    const Text('Mumbai, India Map View',
-                        style: TextStyle(color: Colors.white24)),
-                    // Mock Pins
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: hospitals
-                          .take(5)
-                          .map((h) => _MapPin(hospital: h))
-                          .toList(),
-                    )
-                  ],
-                ),
-              ),
-            ),
-
-            // Back Button
-            Positioned(
-              top: 40,
-              left: 16,
-              child: CircleAvatar(
-                backgroundColor: Colors.black54,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => context.pop(),
-                ),
-              ),
-            ),
-
-            // Bottom Sheet
-            DraggableScrollableSheet(
-              initialChildSize: 0.5,
-              minChildSize: 0.15,
-              maxChildSize: 0.9,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: AppTheme.darkSurface,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(24),
-                        topRight: Radius.circular(24)),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black45,
-                          blurRadius: 20,
-                          spreadRadius: 5)
-                    ],
-                  ),
-                  child: ListView.separated(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(0),
-                    itemCount: hospitals.length + 1, // +1 for header
-                    separatorBuilder: (_, index) =>
-                        index == 0 ? const SizedBox.shrink() : const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        // Header Section
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            Center(
-                                child: Container(
-                                    width: 40,
-                                    height: 4,
-                                    color: Colors.white24)),
-                            Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Text('Suggested Hospitals',
-                                  style:
-                                      Theme.of(context).textTheme.headlineMedium),
-                            ),
-                          ],
-                        );
-                      }
-                      // List Items
-                      final hospital = hospitals[index - 1];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _HospitalCard(
-                          hospital: hospital,
-                          onRoute: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Hospital selected. Please provide details.'),
-                                backgroundColor: AppTheme.secondaryTrust,
-                                duration: Duration(milliseconds: 500),
-                              ),
-                            );
-                            context.go('/paramedic/situation-details');
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            )
-          ],
+        backgroundColor: AppTheme.darkBackground,
+        appBar: AppBar(
+          title: const Text('NEARBY HOSPITALS'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          automaticallyImplyLeading: false,
+          leading: _CancelEmergencyButton(
+              triageId: triageId), // Custom Hold-to-Cancel Button
         ),
-      ),
-    );
-  }
-}
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              Text(
+                "Select a hospital for transport",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.secondaryTrust,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
 
-class _MapPin extends StatelessWidget {
-  final Hospital hospital;
-  const _MapPin({required this.hospital});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: hospital.availabilityColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-            ),
-            child: Text(
-              '${hospital.icuBeds}',
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.white),
-            ),
+              // Hospital List
+              Expanded(
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: hospitals.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final hospital = hospitals[index];
+                    return _HospitalCard(
+                      hospital: hospital,
+                      onRoute: () {
+                        // Mock Navigation
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                          content: Text('Starting Route Guidance...'),
+                          backgroundColor: AppTheme.successGreen,
+                          duration: Duration(seconds: 2),
+                        ));
+                        // In real app, launch Maps URL here
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-          const Icon(Icons.location_on, color: Colors.red, size: 30),
-        ],
+        ),
       ),
     );
   }
@@ -174,51 +87,77 @@ class _HospitalCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.darkSurface,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Column(
         children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(hospital.name,
-                          softWrap: true,
-                          style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.timer, size: 14, color: Colors.white54),
-                          const SizedBox(width: 4),
-                          Text('ETA: ${hospital.distance}',
-                              style: const TextStyle(color: Colors.white54)),
-                        ],
-                      ),
-                    ],
-                  ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(hospital.name,
+                        softWrap: true,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined,
+                            size: 16, color: AppTheme.secondaryTrust),
+                        const SizedBox(width: 4),
+                        Text('${hospital.distance} away',
+                            style: const TextStyle(color: Colors.white70)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.timer_outlined,
+                            size: 16, color: Colors.white54),
+                        const SizedBox(width: 4),
+                        // Mocking time estimation based on distance (rough approx)
+                        Text(
+                            '~${(double.parse(hospital.distance.replaceAll(RegExp(r'[^0-9.]'), '')) * 3).round()} min ETA',
+                            style: const TextStyle(color: Colors.white54)),
+                      ],
+                    )
+                  ],
                 ),
-                const SizedBox(width: 8), // Add spacing between text and badge
-                _AvailabilityBadge(count: hospital.icuBeds, label: 'ICU'),
-              ],
-            ),
-          const SizedBox(height: 16),
+              ),
+              const SizedBox(width: 12),
+              _AvailabilityBadge(count: hospital.icuBeds, label: 'ICU Beds'),
+            ],
+          ),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: onRoute,
+              icon: const Icon(Icons.directions, color: Colors.black),
+              label: const Text('ROUTE TO HOSPITAL',
+                  style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.secondaryTrust,
-              ),
-              child: const Text('ROUTE TO THIS HOSPITAL'),
+                  backgroundColor:
+                      AppTheme.secondaryTrust, // Light blue action color
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8))),
             ),
           ),
         ],
@@ -242,19 +181,123 @@ class _AvailabilityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Column(
         children: [
           Text('$count',
               style: TextStyle(
-                  color: color, fontWeight: FontWeight.bold, fontSize: 18)),
-          Text(label, style: TextStyle(color: color, fontSize: 10)),
+                  color: color, fontWeight: FontWeight.bold, fontSize: 24)),
+          Text(label,
+              style: TextStyle(
+                  color: color, fontSize: 10, fontWeight: FontWeight.w600)),
         ],
+      ),
+    );
+  }
+}
+
+class _CancelEmergencyButton extends StatefulWidget {
+  final String? triageId;
+  const _CancelEmergencyButton({this.triageId});
+
+  @override
+  State<_CancelEmergencyButton> createState() => _CancelEmergencyButtonState();
+}
+
+class _CancelEmergencyButtonState extends State<_CancelEmergencyButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  bool _cancelled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _controller.addStatusListener((status) async {
+      if (status == AnimationStatus.completed && !_cancelled) {
+        _cancelled = true;
+
+        // 1. Delete Logic
+        if (widget.triageId != null) {
+          try {
+            await FirebaseFirestore.instance
+                .collection('temp_triages')
+                .doc(widget.triageId)
+                .delete();
+            print("Deleted Triage Doc: ${widget.triageId}");
+          } catch (e) {
+            print("Error deleting triage doc: $e");
+          }
+        }
+
+        // 2. Navigate Home
+        if (mounted) {
+          context.go('/paramedic-home');
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Emergency Cancelled"),
+              backgroundColor: AppTheme.primaryAlert));
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        _cancelled = false;
+        _controller.forward();
+      },
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      onTap: () {
+        // Show tooltip if tapped normally
+        if (!_cancelled) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Hold press to Cancel Emergency"),
+            duration: Duration(seconds: 1),
+            backgroundColor: Colors.white10,
+          ));
+        }
+      },
+      child: Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Timer Progress
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return CircularProgressIndicator(
+                    value: _controller.value,
+                    color: AppTheme.primaryAlert,
+                    backgroundColor:
+                        Colors.transparent, // Invisible when not pressing
+                    strokeWidth: 3,
+                  );
+                },
+              ),
+            ),
+            // The Cross Icon
+            const Icon(Icons.close, color: AppTheme.textLight, size: 28),
+          ],
+        ),
       ),
     );
   }

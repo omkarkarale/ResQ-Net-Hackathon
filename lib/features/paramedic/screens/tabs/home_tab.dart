@@ -44,20 +44,6 @@ class ParamedicHomeTab extends StatelessWidget {
                   );
                 },
               ),
-              Row(
-                children: [
-                  Icon(Icons.gps_fixed, color: AppTheme.successGreen, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'GPS: STRONG',
-                    style: TextStyle(
-                      color: AppTheme.successGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
