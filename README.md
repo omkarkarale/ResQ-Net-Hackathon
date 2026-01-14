@@ -18,7 +18,7 @@ In critical medical emergencies, the "Golden Hour" is often lost due to informat
 
 ### 🚑 Paramedic App (Mobile)
 * **One-Tap Bed Finder:** Filters hospitals by specific emergency requirements (e.g., "Need Ventilator") and suggests ETA using **Google Maps Routes API**.
-* **AI Visual Triage:** Uses **Google Gemini 1.5 Pro** to analyze video/images of injuries and estimate severity/blood loss instantly.
+* **AI Visual Triage:** Uses **Google Gemma** to analyze video/images of injuries and estimate severity/blood loss instantly.
 * **Voice-to-Data:** Paramedics speak patient details; the app converts it into a structured medical report.
 * **Offline Mode:** Works in low-network zones and syncs data via **Firestore Offline Persistence** when connectivity returns.
 
@@ -28,7 +28,7 @@ We leveraged the **Google Cloud Ecosystem** to build a scalable and intelligent 
 
 | Component | Technology Used | Purpose |
 | :--- | :--- | :--- |
-| **Generative AI** | **Google MedGemma** | Multimodal analysis (Video/Audio) for automated triage reports. |
+| **Generative AI** | **Google Gemma(MedSigLip)** | Multimodal analysis (Video/Audio) for automated triage reports. |
 | **Geolocation** | **Google Maps Platform** | Routes API for "Green Corridor" navigation & Distance Matrix for ETA. |
 | **Backend/DB** | **Firebase (Firestore)** | Real-time database for sub-second syncing between Ambulance & Hospital. |
 | **Logic** | **Google Cloud Functions** | Serverless triggers for "Code Blue" alerts based on severity. |
@@ -46,7 +46,6 @@ We leveraged the **Google Cloud Ecosystem** to build a scalable and intelligent 
 
 ### Prerequisites
 * Node.js (v18+) or Flutter SDK
-* Google Cloud API Key (with Maps & Gemini enabled)
 * Firebase Project
 
 ### Installation
@@ -60,12 +59,6 @@ We leveraged the **Google Cloud Ecosystem** to build a scalable and intelligent 
     # or
     flutter pub get
     ```
-3.  Set up Environment Variables:
-    Create a `.env` file and add your keys:
-    ```env
-    REACT_APP_GOOGLE_MAPS_KEY=your_key
-    REACT_APP_GEMINI_KEY=your_key
-    ```
 4.  Run the App:
     ```bash
     npm start
@@ -76,13 +69,12 @@ We leveraged the **Google Cloud Ecosystem** to build a scalable and intelligent 
 ## 🔮 Future Scope
 * **Smart Traffic Integration:** API integration with city traffic lights to automate Green Corridors.
 * **Wearable Sync:** Auto-fetch patient heart rate from smartwatches.
-* **Predictive Analytics:** Use BigQuery to predict bed shortages during seasonal outbreaks.
-
+  
 ## 👥 Team
 * **Member 1:** Omkar Karale - Full Stack Dev
-* **Member 2:** Pratik Devang - AI Integration
-* **Member 3:** Surabhi Chopadekar - Cloud/Firebase
-* **Member 4:** Kunal Soni - UI/UX Design
+* **Member 2:** Pratik Devang - Back End Dev
+* **Member 3:** Surabhi Chopadekar - UI/UX Design
+* **Member 4:** Kunal Soni - FireBase/FireStore & Cloud Storage
 
 ---
 *Built for TechSprint 2025 (VESIT).*
